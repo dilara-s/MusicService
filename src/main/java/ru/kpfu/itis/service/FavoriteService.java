@@ -14,8 +14,8 @@ public class FavoriteService {
     private static final Logger LOGGER = LoggerFactory.getLogger(FavoriteService.class);
     private FavouriteDao favouriteDao;
 
-    public FavoriteService(Connection connection) {
-        this.favouriteDao = new FavouriteDaoImpl(connection);
+    public FavoriteService(FavouriteDao favouriteDao) {
+        this.favouriteDao = favouriteDao;
     }
 
     public void toggleFavorite(Long userId, Long songId) throws SQLException {

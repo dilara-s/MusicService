@@ -16,11 +16,10 @@ public class PlaylistService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PlaylistService.class);
     private final PlaylistDao playlistDao;
-    private final FavouriteDao favouriteDao;
+    private FavouriteDao favouriteDao;
 
-    public PlaylistService() {
-        this.playlistDao = new PlaylistDaoImpl();
-        this.favouriteDao = new FavouriteDaoImpl(playlistDao.getConnection());
+    public PlaylistService(PlaylistDao playlistDao) {
+        this.playlistDao = playlistDao;
     }
 
     public void createPlaylist(Playlist playlist) throws SQLException {

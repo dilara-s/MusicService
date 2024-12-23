@@ -10,7 +10,7 @@ public class SongService {
 
     private SongDao songDao;
 
-    public SongService() {
+    public SongService(SongDao songDao) {
         this.songDao = songDao;
     }
 

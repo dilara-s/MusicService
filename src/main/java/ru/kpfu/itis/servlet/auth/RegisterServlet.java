@@ -29,7 +29,7 @@ public class RegisterServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        getServletContext().getRequestDispatcher("/WEB-INF/views/auth/register.jsp").forward(req, resp);
+        getServletContext().getRequestDispatcher("/WEB-INF/views/login/register.jsp").forward(req, resp);
     }
 
     @Override
@@ -40,7 +40,7 @@ public class RegisterServlet extends HttpServlet {
 
         if(username == null || password == null || email == null) {
             req.setAttribute("message", "All fields are required");
-            getServletContext().getRequestDispatcher("/WEB-INF/views/auth/register.jsp").forward(req, resp);
+            getServletContext().getRequestDispatcher("/WEB-INF/views/login/register.jsp").forward(req, resp);
             return;
         }
 
@@ -50,7 +50,7 @@ public class RegisterServlet extends HttpServlet {
             User user = userDao.getUsernameAndPassword(username, encryptedPassword);
             if (user != null) {
                 req.setAttribute("message", "User already exists");
-                getServletContext().getRequestDispatcher("/WEB-INF/views/auth/register.jsp").forward(req, resp);
+                getServletContext().getRequestDispatcher("/WEB-INF/views/login/register.jsp").forward(req, resp);
             } else {
                 User newUser = new User(username, encryptedPassword, email);
                 userDao.addUser(newUser);
@@ -60,7 +60,7 @@ public class RegisterServlet extends HttpServlet {
             }
         } catch (SQLException e) {
             req.setAttribute("message", "Error during registration. Try again.");
-            getServletContext().getRequestDispatcher("/WEB-INF/views/auth/register.jsp").forward(req, resp);
+            getServletContext().getRequestDispatcher("/WEB-INF/views/login/register.jsp").forward(req, resp);
         }
     }
 

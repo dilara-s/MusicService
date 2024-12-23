@@ -15,7 +15,7 @@ public class SongDaoImpl implements SongDao {
     private static final Logger logger = LoggerFactory.getLogger(SongDaoImpl.class);
     private Connection connection;
 
-    public SongDaoImpl() {
+    public SongDaoImpl(Connection connection) {
         this.connection = DatabaseCollectionUtil.getConnection();
     }
 

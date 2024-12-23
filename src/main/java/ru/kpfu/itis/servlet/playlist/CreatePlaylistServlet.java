@@ -3,6 +3,8 @@ package ru.kpfu.itis.servlet.playlist;
 import com.cloudinary.Cloudinary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.kpfu.itis.dao.impl.PlaylistDaoImpl;
+import ru.kpfu.itis.dao.impl.SongDaoImpl;
 import ru.kpfu.itis.entity.Playlist;
 import ru.kpfu.itis.entity.Song;
 import ru.kpfu.itis.entity.User;
@@ -17,7 +19,6 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
@@ -35,12 +36,14 @@ public class CreatePlaylistServlet extends HttpServlet {
     private PlaylistService playlistService;
     private SongService songService;
     private final Cloudinary cloudinary = CloudinaryUtil.getInstance();
+    private SongDaoImpl songDao;
+    private PlaylistDaoImpl playlistDao;
 
     @Override
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
-        this.playlistService = new PlaylistService();
-        this.songService = new SongService();
+        this.playlistService = new PlaylistService(playlistDao);
+        this.songService = new SongService(songDao);
     }
 
     @Override
@@ -48,7 +51,7 @@ public class CreatePlaylistServlet extends HttpServlet {
         try {
             List<Song> songs = songService.getAllSongs();
             req.setAttribute("songs", songs);
-            getServletContext().getRequestDispatcher("/WEB-INF/views/createPlaylist.jsp").forward(req, resp);
+            getServletContext().getRequestDispatcher("/WEB-INF/views/playlist/createPlaylist.jsp").forward(req, resp);
         } catch (SQLException e) {
             LOG.error("Error fetching songs for playlist creation", e);
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Unable to fetch songs from the database.");
@@ -67,8 +70,8 @@ public class CreatePlaylistServlet extends HttpServlet {
 
         String playlistName = req.getParameter("name");
         String description = req.getParameter("description");
-        Part coverImagePart = req.getPart("coverImage"); // Обложка плейлиста
-        List<String> songIdsFromForm = Arrays.asList(req.getParameterValues("songIds")); // Список ID песен, которые выбраны для добавления
+        Part coverImagePart = req.getPart("coverImage");
+        List<String> songIdsFromForm = Arrays.asList(req.getParameterValues("songIds"));
 
         if (songIdsFromForm == null || songIdsFromForm.isEmpty()) {
             req.setAttribute("error", "You must add at least one song to the playlist.");
@@ -77,19 +80,16 @@ public class CreatePlaylistServlet extends HttpServlet {
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
-            getServletContext().getRequestDispatcher("/WEB-INF/views/createPlaylist.jsp").forward(req, resp);
+            getServletContext().getRequestDispatcher("/WEB-INF/views/playlist/createPlaylist.jsp").forward(req, resp);
             return;
         }
 
         String coverImageUrl = null;
 
-        // Загружаем обложку плейлиста в Cloudinary
         if (coverImagePart != null && coverImagePart.getSize() > 0) {
             try {
-                // Отправляем изображение на Cloudinary
                 Map uploadResult = uploadImageToCloudinary(coverImagePart);
 
-                // Получаем URL загруженного изображения
                 coverImageUrl = (String) uploadResult.get("url");
 
             } catch (Exception e) {
@@ -100,12 +100,11 @@ public class CreatePlaylistServlet extends HttpServlet {
                 } catch (SQLException ex) {
                     throw new RuntimeException(ex);
                 }
-                getServletContext().getRequestDispatcher("/WEB-INF/views/createPlaylist.jsp").forward(req, resp);
+                getServletContext().getRequestDispatcher("/WEB-INF/views/playlist/createPlaylist.jsp").forward(req, resp);
                 return;
             }
         }
 
-        // Создаем новый плейлист
         Playlist playlist = new Playlist();
         playlist.setTitle(playlistName);
         playlist.setDescription(description);
@@ -113,27 +112,21 @@ public class CreatePlaylistServlet extends HttpServlet {
         playlist.setUserId(user.getId());
 
         try {
-            // Сохраняем плейлист в базу данных
             playlistService.createPlaylist(playlist);
 
-            // Получаем id нового плейлиста
             Long playlistId = playlist.getId();
 
-            // Добавляем песни в новый плейлист
             for (String songIdStr : songIdsFromForm) {
                 Long songId = Long.parseLong(songIdStr);
 
-                // Проверяем, существует ли песня с таким ID в базе данных
                 Song song = songService.getSongById(songId);
                 if (song != null) {
-                    // Добавляем песню в плейлист
                     songService.addSongToPlaylist(playlistId, songId);
                 } else {
                     LOG.warn("Song with ID {} does not exist in the database and will not be added to the playlist.", songId);
                 }
             }
 
-            // Перенаправляем на страницу с плейлистами
             resp.sendRedirect(req.getContextPath() + "/playlists");
         } catch (SQLException | IOException e) {
             LOG.error("Error creating playlist", e);
@@ -143,21 +136,17 @@ public class CreatePlaylistServlet extends HttpServlet {
             } catch (SQLException ex) {
                 throw new RuntimeException(ex);
             }
-            getServletContext().getRequestDispatcher("/WEB-INF/views/createPlaylist.jsp").forward(req, resp);
+            getServletContext().getRequestDispatcher("/WEB-INF/views/playlist/createPlaylist.jsp").forward(req, resp);
         }
     }
 
-    // Метод для загрузки изображения в Cloudinary
     private Map uploadImageToCloudinary(Part coverImagePart) throws Exception {
-        // Получаем InputStream изображения
         InputStream imageInputStream = coverImagePart.getInputStream();
 
-        // Подготовка к загрузке в Cloudinary
         Map uploadResult = cloudinary.uploader().upload(imageInputStream, Map.of(
                 "resource_type", "image"
         ));
 
-        // Возвращаем результат загрузки
         return uploadResult;
     }
 }

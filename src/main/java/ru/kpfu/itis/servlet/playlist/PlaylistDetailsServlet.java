@@ -2,6 +2,8 @@ package ru.kpfu.itis.servlet.playlist;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.kpfu.itis.dao.impl.PlaylistDaoImpl;
+import ru.kpfu.itis.dao.impl.SongDaoImpl;
 import ru.kpfu.itis.entity.Playlist;
 import ru.kpfu.itis.entity.Song;
 import ru.kpfu.itis.entity.User;
@@ -22,12 +24,14 @@ public class PlaylistDetailsServlet extends HttpServlet {
     private static final Logger LOG = LoggerFactory.getLogger(PlaylistDetailsServlet.class);
     private PlaylistService playlistService;
     private SongService songService;
+    private SongDaoImpl songDao;
+    private PlaylistDaoImpl playlistDao;
 
     @Override
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
-        this.playlistService = new PlaylistService();
-        this.songService = new SongService();
+        this.playlistService = new PlaylistService(playlistDao);
+        this.songService = new SongService(songDao);
     }
 
     @Override

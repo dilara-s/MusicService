@@ -1,5 +1,7 @@
 package ru.kpfu.itis.servlet.song;
 
+import ru.kpfu.itis.dao.impl.PlaylistDaoImpl;
+import ru.kpfu.itis.dao.impl.SongDaoImpl;
 import ru.kpfu.itis.entity.Song;
 import ru.kpfu.itis.service.SongService;
 
@@ -14,10 +16,11 @@ import java.sql.SQLException;
 public class SongServlet extends HttpServlet {
 
     private SongService songService;
+    private SongDaoImpl songDao;
 
     @Override
     public void init() throws ServletException {
-        songService = new SongService();
+        songService = new SongService(songDao);
     }
 
     @Override

@@ -18,9 +18,8 @@ public class PlaylistDaoImpl implements PlaylistDao {
     private Connection connection;
     private FavouriteDao favouriteDao;
 
-    public PlaylistDaoImpl() {
+    public PlaylistDaoImpl(Connection connection) {
         this.connection = DatabaseCollectionUtil.getConnection();
-        this.favouriteDao = new FavouriteDaoImpl(connection);
     }
 
     @Override

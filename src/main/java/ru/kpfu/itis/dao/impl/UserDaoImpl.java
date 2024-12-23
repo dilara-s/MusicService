@@ -14,7 +14,7 @@ public class UserDaoImpl implements UserDao {
 
     private Connection connection;
 
-    public UserDaoImpl() {
+    public UserDaoImpl(Connection connection) {
         this.connection = DatabaseCollectionUtil.getConnection();
     }
 
@@ -33,6 +33,7 @@ public class UserDaoImpl implements UserDao {
             int rowsAffected = statement.executeUpdate();
             LOGGER.info("User added successfully. Rows affected: {}", rowsAffected);
         } catch (SQLException e) {
+            e.printStackTrace();
             LOGGER.error("Error while adding user: {}", user.getUsername(), e);
             throw e;
         }
